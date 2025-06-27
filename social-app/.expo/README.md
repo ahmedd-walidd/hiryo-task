@@ -1,8 +1,12 @@
-> Why do I have a folder named ".expo" in my project?
-The ".expo" folder is created when an Expo project is started using "expo start" command.
-> What do the files contain?
-- "devices.json": contains information about devices that have recently opened this project. This is used to populate the "Development sessions" list in your development builds.
-- "settings.json": contains the server configuration that is used to serve the application manifest.
-> Should I commit the ".expo" folder?
-No, you should not share the ".expo" folder. It does not contain any information that is relevant for other developers working on the project, it is specific to your machine.
-Upon project creation, the ".expo" folder is already added to your ".gitignore" file.
+To start:
+in social-app:
+expo init
+npm install
+npx expo install @react-navigation/native @react-navigation/native-stack react-native-elements axios
+npx expo start
+
+Description:
+Home Screen: Scroll through a list of posts. each post is a card with a user’s name, avatar (just their initials), title.
+
+Post Details: Tap a post to see the full user info, content, and comments
+pulls live data from the GoRest API

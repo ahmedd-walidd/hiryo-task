@@ -18,15 +18,25 @@ const HomeScreen = () => {
     const fetchPosts = async () => {
       try {
         const response = await axios.get('https://gorest.co.in/public/v2/posts');
-        setPosts(response.data);
-      } catch (error) {
-        console.error('Error fetching posts:', error);
+        const validPosts = await Promise.all(
+          response.data.map(async (post: Post) => {
+            const postResponse = await axios.get(`https://gorest.co.in/public/v2/posts/${post.id}`);
+            return postResponse.data;
+          })
+        );
+        setPosts(validPosts);
+      } catch {
+        setPosts([]);
       } finally {
         setLoading(false);
       }
     };
     fetchPosts();
   }, []);
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
 
   return (
     <FlatList

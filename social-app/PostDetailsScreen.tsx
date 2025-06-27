@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, FlatList, ActivityIndicator } from 'react-nativ
 import { Avatar } from 'react-native-elements';
 import axios from 'axios';
 import CommentCard from './components/CommentCard';
-
+import { RouteProp } from '@react-navigation/native';
+import { RootStackParamList } from './types/navigation';
 interface Post {
   id: number;
   user_id: number;
@@ -23,7 +24,9 @@ interface Comment {
   body: string;
 }
 
-const PostDetailsScreen = ({ route }: { route: any }) => {
+type PostDetailsScreenRouteProp = RouteProp<RootStackParamList, 'PostDetails'>;
+
+const PostDetailsScreen = ({ route }: { route: PostDetailsScreenRouteProp }) => {
   const { postId } = route.params;
   const [post, setPost] = useState<Post | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -34,15 +37,18 @@ const PostDetailsScreen = ({ route }: { route: any }) => {
     const fetchData = async () => {
       try {
         const postResponse = await axios.get(`https://gorest.co.in/public/v2/posts/${postId}`);
-        setPost(postResponse.data);
+        const fetchedPost = postResponse.data;
+        setPost(fetchedPost);
 
-        const userResponse = await axios.get(`https://gorest.co.in/public/v2/users/${postResponse.data.user_id}`);
+        const userResponse = await axios.get(`https://gorest.co.in/public/v2/users/${fetchedPost.user_id}`);
         setUser(userResponse.data);
 
         const commentsResponse = await axios.get(`https://gorest.co.in/public/v2/posts/${postId}/comments`);
         setComments(commentsResponse.data);
-      } catch (error) {
-        console.error('Error fetching post details:', error);
+      } catch {
+        setPost(null);
+        setUser(null);
+        setComments([]);
       } finally {
         setLoading(false);
       }
@@ -50,23 +56,34 @@ const PostDetailsScreen = ({ route }: { route: any }) => {
     fetchData();
   }, [postId]);
 
+  const getInitials = (name: string) => {
+    const names = name.split(' ');
+    return names.map((n) => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
+
+  if (!post || !user) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>
-      {post && user && (
-        <View style={styles.post}>
-          <View style={styles.userInfo}>
-            <Avatar
-              rounded
-              size="medium"
-              containerStyle={styles.avatar}
-            />
-            <Text style={styles.userName}>{user.name}</Text>
-          </View>
-          <Text style={styles.title}>{post.title}</Text>
-          <Text style={styles.body}>{post.body}</Text>
+      <View style={styles.post}>
+        <View style={styles.userInfo}>
+          <Avatar
+            rounded
+            title={getInitials(user.name)}
+            size="medium"
+            containerStyle={styles.avatar}
+          />
+          <Text style={styles.userName}>{user.name}</Text>
         </View>
-      )}
+        <Text style={styles.title}>{post.title}</Text>
+        <Text style={styles.body}>{post.body}</Text>
+      </View>
       <Text style={styles.commentsTitle}>Comments</Text>
       <FlatList
         data={comments}
